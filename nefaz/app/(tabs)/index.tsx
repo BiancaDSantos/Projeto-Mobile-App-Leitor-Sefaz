@@ -15,17 +15,14 @@ import {
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 
-// Imports do React Hook Form e Zod
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
-// Importes dos seus arquivos (ajuste as pastas conforme a sua estrutura)
-// Exemplo: import { chaveNFeSchema } from '../../validations/leituraSchema';
 import { chaveNFeSchema } from '../../schemas/leituraSchema'; 
 import { sefazService } from '../../services/buscaSefazService'; 
 
-// 1. Criamos um schema de objeto para o formulário englobando a sua validação
+
 const formSchema = z.object({
   chave: chaveNFeSchema,
 });
@@ -35,10 +32,10 @@ type FormData = z.infer<typeof formSchema>;
 export default function HomeIndex() {
   const router = useRouter();
   
-  // Estado para controlar o loading do botão enquanto a API responde
+
   const [isSubmittingManual, setIsSubmittingManual] = useState(false);
 
-  // 2. Inicializamos o React Hook Form
+  
   const { 
     control, 
     handleSubmit, 
@@ -49,32 +46,36 @@ export default function HomeIndex() {
     defaultValues: {
       chave: '',
     },
-    mode: 'onChange', // Valida em tempo real
+    mode: 'onChange',
   });
 
-  // Observamos o valor para aplicar o estilo visual do botão
+  
   const chaveValue = watch('chave');
   const lengthNumeros = chaveValue ? chaveValue.replace(/\D/g, '').length : 0;
 
-  // 3. Função chamada quando o Zod aprova a chave (Dígito Verificador correto)
+  
   const onSubmit = async (data: FormData) => {
     setIsSubmittingManual(true);
-    Keyboard.dismiss(); // Esconde o teclado para o usuário focar no loading
+    Keyboard.dismiss();
     
     try {
-      // Faz a requisição usando o Axios (configurado no seu service)
+      
       const htmlDaNota = await sefazService.consultarNotaHtml(data.chave);
       
       Alert.alert('Sucesso!', 'HTML da nota baixado com sucesso. Pronto para extração.');
       
-      // 🚧 FUTURO: Aqui chamaremos a função do Cheerio para extrair os produtos do HTML
+     
       // const produtos = htmlParser.parse(htmlDaNota);
       // router.push({ pathname: '/review', params: { produtos: JSON.stringify(produtos) } });
       
     } catch (error: any) {
+
       Alert.alert('Erro na Consulta', error.message || 'Ocorreu um erro ao buscar a nota na SEFAZ.');
+
     } finally {
+
       setIsSubmittingManual(false);
+
     }
   };
 
@@ -99,21 +100,21 @@ export default function HomeIndex() {
               style={styles.primaryButton}
               activeOpacity={0.8}
               onPress={() => router.push('/scanner')}
-              disabled={isSubmittingManual} // Desativa se estiver consultando algo manual
+              disabled={isSubmittingManual}
             >
               <Feather name="maximize" size={24} color="#FFF" />
               <Text style={styles.primaryButtonText}>Ler QR Code com a Câmera</Text>
             </TouchableOpacity>
           </View>
 
-          {/* DIVISOR VISUAL */}
+          
           <View style={styles.dividerContainer}>
             <View style={styles.dividerLine} />
             <Text style={styles.dividerText}>OU</Text>
             <View style={styles.dividerLine} />
           </View>
 
-          {/* OPÇÃO 2: Digitação Manual com React Hook Form */}
+         
           <View style={styles.section}>
             <Text style={styles.label}>Digite a Chave de Acesso (44 números)</Text>
             
@@ -140,20 +141,20 @@ export default function HomeIndex() {
                     value={value}
                     onBlur={onBlur}
                     onChangeText={onChange}
-                    editable={!isSubmittingManual} // Bloqueia edição durante a consulta
+                    editable={!isSubmittingManual}
                   />
                 </View>
               )}
             />
             
-            {/* Mensagem de Erro do Zod */}
+            
             {errors.chave && (
               <Text style={styles.errorText}>
                 {errors.chave.message}
               </Text>
             )}
             
-            {/* Botão de Envio (Muda para Loading quando clicado) */}
+           
             <TouchableOpacity 
               style={[
                 styles.secondaryButton, 
@@ -190,6 +191,7 @@ export default function HomeIndex() {
 }
 
 const styles = StyleSheet.create({
+  
   container: { flex: 1, backgroundColor: '#F2F2F7', padding: 24, justifyContent: 'center' },
   header: { alignItems: 'center', marginBottom: 40 },
   title: { fontSize: 28, fontWeight: 'bold', color: '#1C1C1E', marginBottom: 8 },

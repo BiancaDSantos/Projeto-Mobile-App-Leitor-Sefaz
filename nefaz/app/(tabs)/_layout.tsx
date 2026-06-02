@@ -5,17 +5,17 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        
-        tabBarActiveTintColor: '#B848ED', 
+
+        tabBarActiveTintColor: '#B848ED',
         tabBarInactiveTintColor: '#8E8E93',
-        
+
         tabBarStyle: {
           paddingBottom: 5,
           paddingTop: 5,
           height: 60,
         },
-        
-        headerShown: true, 
+
+        headerShown: true,
       }}
     >
       <Tabs.Screen
@@ -28,7 +28,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      
+
       <Tabs.Screen
         name="estoque"
         options={{
