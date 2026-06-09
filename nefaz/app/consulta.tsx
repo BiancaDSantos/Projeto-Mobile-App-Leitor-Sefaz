@@ -25,6 +25,12 @@ export default function ConsultaScreen() {
     const urlConsulta = `${baseUrl}?p=${chave}|2|1|1|`;
 
     const handleDataExtracted = (dados: any) => {
+
+        if (!dados || !dados.produtos) {
+      handleError('O formato da nota fiscal é inválido ou não possui itens.');
+      return;
+    }
+
         Alert.alert('Sucesso!', `${dados.produtos.length} itens encontrados na nota.`);
 
 

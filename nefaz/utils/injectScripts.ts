@@ -1,6 +1,5 @@
 export const SEFAZ_EXTRACTOR_SCRIPT = `
   (function() {
-    // Evita múltiplas execuções do mesmo script se a página demorar a estabilizar
     if (window.__SEFAZ_SCRIPT_INJECTED) return;
     window.__SEFAZ_SCRIPT_INJECTED = true;
 
@@ -9,26 +8,18 @@ export const SEFAZ_EXTRACTOR_SCRIPT = `
       const btnValidar = document.getElementById('Body_Main_ButtonValidar');
       
       if (btnValidar) {
-        // Informa ao React Native que o Captcha está na tela
         window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'SEFAZ_CAPTCHA_REQUIRED' }));
 
-        // Cria um observador para auto-clicar no botão Validar 
-        // assim que o Cloudflare preencher o token de resposta
         const checkTurnstileInterval = setInterval(() => {
           const turnstileInput = document.querySelector('[name="cf-turnstile-response"]');
-          
           if (turnstileInput && turnstileInput.value) {
             clearInterval(checkTurnstileInterval);
-            
-            // Avisa o app que estamos prosseguindo
             window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'SEFAZ_CAPTCHA_SOLVED' }));
-            
-            // Dispara o clique nativo que aciona o __doPostBack do ASP.NET
             btnValidar.click();
           }
         }, 500);
 
-        return; // Interrompe a execução aqui para aguardar a ação do usuário
+        return; 
       }
 
       // ESTADO 2: Tela de Resultados (Nota Fiscal carregada)
@@ -58,9 +49,18 @@ export const SEFAZ_EXTRACTOR_SCRIPT = `
           }
         });
 
+        // Extrai dados do emitente para compor a tela de revisão
+        const emitenteNome = document.querySelector('.txtTopo')?.innerText.trim() || '';
+        const emitenteCnpjElement = document.querySelectorAll('.text')[0];
+        const emitenteCnpj = emitenteCnpjElement ? emitenteCnpjElement.innerText.replace(/\\D/g, '') : '';
+
+        // AGORA SIM: Enviando a estrutura correta { produtos, emitente }
         window.ReactNativeWebView.postMessage(JSON.stringify({
           type: 'SEFAZ_SUCCESS',
-          data: produtos
+          data: {
+            produtos: produtos,
+            emitente: { nome: emitenteNome, cnpj: emitenteCnpj }
+          }
         }));
       }
 
@@ -71,5 +71,5 @@ export const SEFAZ_EXTRACTOR_SCRIPT = `
       }));
     }
   })();
-  true; // Necessário para o injectedJavaScript
+  true;
 `;
