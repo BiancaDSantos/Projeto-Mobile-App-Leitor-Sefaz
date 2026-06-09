@@ -1,6 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 
 export const initDB = async () => {
+  
     const db = await SQLite.openDatabaseAsync('estoque_nfe.db');
 
 

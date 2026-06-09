@@ -20,8 +20,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 import { chaveNFeSchema } from '../../schemas/leituraSchema'; 
-import { sefazService } from '../../services/buscaSefazService'; 
-
 
 const formSchema = z.object({
   chave: chaveNFeSchema,
@@ -32,9 +30,7 @@ type FormData = z.infer<typeof formSchema>;
 export default function HomeIndex() {
   const router = useRouter();
   
-
   const [isSubmittingManual, setIsSubmittingManual] = useState(false);
-
   
   const { 
     control, 
@@ -49,33 +45,24 @@ export default function HomeIndex() {
     mode: 'onChange',
   });
 
-  
   const chaveValue = watch('chave');
   const lengthNumeros = chaveValue ? chaveValue.replace(/\D/g, '').length : 0;
 
-  
   const onSubmit = async (data: FormData) => {
     setIsSubmittingManual(true);
     Keyboard.dismiss();
     
     try {
+      // Limpa a formatação e extrai apenas os números antes de enviar
+      const chaveLimpa = data.chave.replace(/\D/g, '');
       
-      const htmlDaNota = await sefazService.consultarNotaHtml(data.chave);
-      
-      Alert.alert('Sucesso!', 'HTML da nota baixado com sucesso. Pronto para extração.');
-      
-     
-      // const produtos = htmlParser.parse(htmlDaNota);
-      // router.push({ pathname: '/review', params: { produtos: JSON.stringify(produtos) } });
+      // Navega para a tela de Consulta (WebView) passando a chave de acesso
+      router.push({ pathname: '/consulta', params: { chave: chaveLimpa } });
       
     } catch (error: any) {
-
-      Alert.alert('Erro na Consulta', error.message || 'Ocorreu um erro ao buscar a nota na SEFAZ.');
-
+      Alert.alert('Erro', 'Ocorreu um problema ao iniciar a consulta.');
     } finally {
-
       setIsSubmittingManual(false);
-
     }
   };
 
@@ -99,7 +86,7 @@ export default function HomeIndex() {
             <TouchableOpacity 
               style={styles.primaryButton}
               activeOpacity={0.8}
-              onPress={() => router.push('/scanner')}
+              onPress={() => router.push('/')}
               disabled={isSubmittingManual}
             >
               <Feather name="maximize" size={24} color="#FFF" />
@@ -107,14 +94,13 @@ export default function HomeIndex() {
             </TouchableOpacity>
           </View>
 
-          
           <View style={styles.dividerContainer}>
             <View style={styles.dividerLine} />
             <Text style={styles.dividerText}>OU</Text>
             <View style={styles.dividerLine} />
           </View>
 
-         
+          {/* OPÇÃO 2: Formulário Manual */}
           <View style={styles.section}>
             <Text style={styles.label}>Digite a Chave de Acesso (44 números)</Text>
             
@@ -147,14 +133,12 @@ export default function HomeIndex() {
               )}
             />
             
-            
             {errors.chave && (
               <Text style={styles.errorText}>
                 {errors.chave.message}
               </Text>
             )}
             
-           
             <TouchableOpacity 
               style={[
                 styles.secondaryButton, 
@@ -191,7 +175,6 @@ export default function HomeIndex() {
 }
 
 const styles = StyleSheet.create({
-  
   container: { flex: 1, backgroundColor: '#F2F2F7', padding: 24, justifyContent: 'center' },
   header: { alignItems: 'center', marginBottom: 40 },
   title: { fontSize: 28, fontWeight: 'bold', color: '#1C1C1E', marginBottom: 8 },
