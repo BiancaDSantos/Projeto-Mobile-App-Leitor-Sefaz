@@ -86,7 +86,8 @@ export default function HomeIndex() {
             <TouchableOpacity 
               style={styles.primaryButton}
               activeOpacity={0.8}
-              onPress={() => router.push('/')}
+              onPress={() => router.push('/scanner')}
+              //onPress={() => Alert.alert('Botão funcionou', 'O clique está passando!')}
               disabled={isSubmittingManual}
             >
               <Feather name="maximize" size={24} color="#FFF" />

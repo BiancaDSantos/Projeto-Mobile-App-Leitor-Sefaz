@@ -5,11 +5,12 @@ import { SEFAZ_EXTRACTOR_SCRIPT } from '../utils/injectScripts';
 
 interface CaptchaWebViewProps {
     url: string;
+    htmlMock?: string;
     onDataExtracted: (dados: any) => void;
     onError: (erro: string) => void;
 }
 
-export function CaptchaWebView({ url, onDataExtracted, onError }: CaptchaWebViewProps) {
+export function CaptchaWebView({ url, htmlMock, onDataExtracted, onError }: CaptchaWebViewProps) {
     const webviewRef = useRef<WebView>(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -43,6 +44,11 @@ export function CaptchaWebView({ url, onDataExtracted, onError }: CaptchaWebView
         }
     };
 
+    const sourceParams = htmlMock
+        ? { html: htmlMock, baseUrl: 'https://sat.sef.sc.gov.br' }
+        : { uri: url };
+
+
     return (
         <View style={styles.container}>
             {/* Overlay de Loading inicial ou de processamento final */}
@@ -55,7 +61,7 @@ export function CaptchaWebView({ url, onDataExtracted, onError }: CaptchaWebView
                 </View>
             )}
 
-            <WebView
+            {/* <WebView
                 ref={webviewRef}
                 source={{ uri: url }}
                 injectedJavaScript={SEFAZ_EXTRACTOR_SCRIPT}
@@ -69,6 +75,19 @@ export function CaptchaWebView({ url, onDataExtracted, onError }: CaptchaWebView
                 javaScriptEnabled={true}
                 domStorageEnabled={true}
                 style={[styles.webview, status === 'CAPTCHA_VISIBLE' ? styles.webviewVisible : styles.webviewHidden]}
+            /> */}
+
+
+            <WebView
+                ref={webviewRef}
+                source={sourceParams} // Usa a string HTML local se existir
+                injectedJavaScript={SEFAZ_EXTRACTOR_SCRIPT}
+                injectedJavaScriptForMainFrameOnly={true}
+                onMessage={handleMessage}
+                javaScriptEnabled={true}
+                domStorageEnabled={true}
+                // Se usar mock, pule a exibição visual e dispare a leitura direto
+                style={[styles.webview, (status === 'CAPTCHA_VISIBLE' || htmlMock) ? styles.webviewVisible : styles.webviewHidden]}
             />
         </View>
     );

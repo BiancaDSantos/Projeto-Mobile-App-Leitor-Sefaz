@@ -16,7 +16,7 @@ export default function ScannerScreen() {
   const [permissao, solicitarPermissao] = useCameraPermissions();
   const [escaneado, setEscaneado] = useState(false);
 
-  // Solicita permissão automaticamente ao abrir a tela caso não tenha sido solicitada
+  
   useEffect(() => {
     if (!permissao) return;
     if (!permissao.granted && permissao.canAskAgain) {
@@ -24,11 +24,12 @@ export default function ScannerScreen() {
     }
   }, [permissao]);
 
-  // Função para extrair a chave de 44 dígitos de qualquer texto/URL lida
+  
   const extrairChaveSefaz = (dadosIniciais: string): string | null => {
-    // Procura por uma sequência de exatamente 44 números em qualquer lugar do texto
+    
     const regexMatch = dadosIniciais.match(/\d{44}/);
     return regexMatch ? regexMatch[0] : null;
+    
   };
 
   const lidarComLeitura = ({ data }: { data: string }) => {
@@ -38,7 +39,7 @@ export default function ScannerScreen() {
     const chaveExtraida = extrairChaveSefaz(data);
 
     if (chaveExtraida) {
-      Vibration.vibrate(100); // Feedback tátil de sucesso
+      Vibration.vibrate(100);
       
       Alert.alert(
         'QR Code Lido!',
@@ -47,19 +48,20 @@ export default function ScannerScreen() {
           { 
             text: 'Cancelar', 
             style: 'cancel', 
-            onPress: () => setEscaneado(false) // Libera a câmera novamente
+            onPress: () => setEscaneado(false)
           },
           { 
             text: 'Consultar', 
             onPress: () => {
-              // Navega para a nossa tela orquestradora (ConsultaScreen) passando a chave
+              
               router.replace({ pathname: '/consulta', params: { chave: chaveExtraida } });
+
             } 
           }
         ]
       );
     } else {
-      Vibration.vibrate([0, 100, 100, 100]); // Feedback tátil de erro
+      Vibration.vibrate([0, 100, 100, 100]);
       
       Alert.alert(
         'QR Code Inválido',
@@ -69,7 +71,7 @@ export default function ScannerScreen() {
     }
   };
 
-  // Tratamento de estados de carregamento e permissões
+ 
   if (!permissao) {
     return <View style={styles.containerFallback} />;
   }
@@ -97,12 +99,12 @@ export default function ScannerScreen() {
         style={StyleSheet.absoluteFillObject}
         facing="back"
         barcodeScannerSettings={{
-          barcodeTypes: ["qr"], // Otimiza a câmera focando apenas em QR Codes
+          barcodeTypes: ["qr"],
         }}
         onBarcodeScanned={escaneado ? undefined : lidarComLeitura}
       />
 
-      {/* Overlay com "Mira" para guiar o usuário */}
+      
       <View style={styles.overlay}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.botaoVoltar} onPress={() => router.back()}>

@@ -2,18 +2,20 @@ import React from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { CaptchaWebView } from '../components/CaptchaWebView';
+import { MOCK_HTML_SEFAZ } from '@/mocks/mockSefaz';
 
 export default function ConsultaScreen() {
 
     const { chave } = useLocalSearchParams<{ chave: string }>();
     const router = useRouter();
 
-    // Garante que a chave existe antes de prosseguir
     if (!chave) {
         Alert.alert('Erro', 'Chave de acesso não fornecida.');
         router.back();
         return null;
     }
+
+    const MODO_DESENVOLVIMENTO_OFFLINE = true;
 
     const baseUrl = process.env.EXPO_PUBLIC_URL_SEFAZ_SC;
 
@@ -27,9 +29,9 @@ export default function ConsultaScreen() {
     const handleDataExtracted = (dados: any) => {
 
         if (!dados || !dados.produtos) {
-      handleError('O formato da nota fiscal é inválido ou não possui itens.');
-      return;
-    }
+            handleError('O formato da nota fiscal é inválido ou não possui itens.');
+            return;
+        }
 
         Alert.alert('Sucesso!', `${dados.produtos.length} itens encontrados na nota.`);
 
@@ -52,9 +54,18 @@ export default function ConsultaScreen() {
     };
 
     return (
+        // <View style={styles.container}>
+        //     <CaptchaWebView
+        //         url={urlConsulta}
+        //         onDataExtracted={handleDataExtracted}
+        //         onError={handleError}
+        //     />
+        // </View>
+
         <View style={styles.container}>
             <CaptchaWebView
                 url={urlConsulta}
+                htmlMock={MODO_DESENVOLVIMENTO_OFFLINE ? MOCK_HTML_SEFAZ : undefined} // Injeta o Mock aqui
                 onDataExtracted={handleDataExtracted}
                 onError={handleError}
             />
