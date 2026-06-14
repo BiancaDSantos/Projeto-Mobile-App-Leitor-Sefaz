@@ -1,40 +1,43 @@
 import React, { useRef, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
-import { SEFAZ_EXTRACTOR_SCRIPT } from '../utils/injectScripts';
+import { gerarScriptSefaz } from '../utils/injectScripts';
 
 interface CaptchaWebViewProps {
     url: string;
+    chaveAcesso: string;
     htmlMock?: string;
     onDataExtracted: (dados: any) => void;
     onError: (erro: string) => void;
 }
 
-export function CaptchaWebView({ url, htmlMock, onDataExtracted, onError }: CaptchaWebViewProps) {
+export function CaptchaWebView({ url, chaveAcesso, htmlMock, onDataExtracted, onError }: CaptchaWebViewProps) {
     const webviewRef = useRef<WebView>(null);
-    const [isLoading, setIsLoading] = useState(true);
-
     const [status, setStatus] = useState<'LOADING' | 'CAPTCHA_VISIBLE' | 'PROCESSING'>('LOADING');
+    const [loadingMessage, setLoadingMessage] = useState('Conectando à SEFAZ...');
 
     const handleMessage = (event: WebViewMessageEvent) => {
         try {
             const parsedData = JSON.parse(event.nativeEvent.data);
 
             switch (parsedData.type) {
+                case 'SEFAZ_FILLING_FORM':
+                    setLoadingMessage('Inserindo chave de acesso...');
+                    break;
                 case 'SEFAZ_CAPTCHA_REQUIRED':
-                    // Oculta o loading e exibe a página para o usuário resolver o Captcha
                     setStatus('CAPTCHA_VISIBLE');
                     break;
-
                 case 'SEFAZ_CAPTCHA_SOLVED':
-                    // O usuário resolveu, bloqueia a tela enquanto a SEFAZ processa o clique
                     setStatus('PROCESSING');
+                    setLoadingMessage('Resolvendo segurança...');
                     break;
-
+                case 'SEFAZ_PROCESSING_DATA':
+                    setStatus('PROCESSING');
+                    setLoadingMessage('Extraindo dados da nota...');
+                    break;
                 case 'SEFAZ_SUCCESS':
                     onDataExtracted(parsedData.data);
                     break;
-
                 case 'SEFAZ_ERROR':
                     onError(parsedData.message);
                     break;
@@ -48,45 +51,23 @@ export function CaptchaWebView({ url, htmlMock, onDataExtracted, onError }: Capt
         ? { html: htmlMock, baseUrl: 'https://sat.sef.sc.gov.br' }
         : { uri: url };
 
-
     return (
         <View style={styles.container}>
-            {/* Overlay de Loading inicial ou de processamento final */}
             {(status === 'LOADING' || status === 'PROCESSING') && (
                 <View style={styles.overlayContainer}>
                     <ActivityIndicator size="large" color="#007AFF" />
-                    <Text style={styles.loadingText}>
-                        {status === 'LOADING' ? 'Conectando à SEFAZ...' : 'Extraindo dados da nota...'}
-                    </Text>
+                    <Text style={styles.loadingText}>{loadingMessage}</Text>
                 </View>
             )}
 
-            {/* <WebView
-                ref={webviewRef}
-                source={{ uri: url }}
-                injectedJavaScript={SEFAZ_EXTRACTOR_SCRIPT}
-                // Quando a página recarrega (PostBack), o script precisa ser injetado novamente
-                injectedJavaScriptForMainFrameOnly={true}
-                onMessage={handleMessage}
-                // Se a página carregar e não disparar nenhuma mensagem, podemos usar isto de fallback
-                onLoadEnd={() => {
-                    if (status === 'LOADING') setStatus('CAPTCHA_VISIBLE');
-                }}
-                javaScriptEnabled={true}
-                domStorageEnabled={true}
-                style={[styles.webview, status === 'CAPTCHA_VISIBLE' ? styles.webviewVisible : styles.webviewHidden]}
-            /> */}
-
-
             <WebView
                 ref={webviewRef}
-                source={sourceParams} // Usa a string HTML local se existir
-                injectedJavaScript={SEFAZ_EXTRACTOR_SCRIPT}
+                source={sourceParams}
+                injectedJavaScript={gerarScriptSefaz(chaveAcesso)} // <-- Script dinâmico injetado aqui
                 injectedJavaScriptForMainFrameOnly={true}
                 onMessage={handleMessage}
                 javaScriptEnabled={true}
                 domStorageEnabled={true}
-                // Se usar mock, pule a exibição visual e dispare a leitura direto
                 style={[styles.webview, (status === 'CAPTCHA_VISIBLE' || htmlMock) ? styles.webviewVisible : styles.webviewHidden]}
             />
         </View>

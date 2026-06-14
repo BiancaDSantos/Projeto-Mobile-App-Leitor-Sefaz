@@ -49,20 +49,24 @@ export default function HomeIndex() {
   const lengthNumeros = chaveValue ? chaveValue.replace(/\D/g, '').length : 0;
 
   const onSubmit = async (data: FormData) => {
+
     setIsSubmittingManual(true);
     Keyboard.dismiss();
     
     try {
-      // Limpa a formatação e extrai apenas os números antes de enviar
+      
       const chaveLimpa = data.chave.replace(/\D/g, '');
       
-      // Navega para a tela de Consulta (WebView) passando a chave de acesso
       router.push({ pathname: '/consulta', params: { chave: chaveLimpa } });
       
     } catch (error: any) {
+
       Alert.alert('Erro', 'Ocorreu um problema ao iniciar a consulta.');
+
     } finally {
+
       setIsSubmittingManual(false);
+
     }
   };
 
@@ -72,37 +76,44 @@ export default function HomeIndex() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+
         <View style={styles.container}>
           
           <View style={styles.header}>
+
             <Text style={styles.title}>Nova Leitura</Text>
             <Text style={styles.subtitle}>
               Escolha como deseja importar os produtos para o seu estoque.
             </Text>
+
           </View>
 
           {/* OPÇÃO 1: Scanner via Câmera */}
           <View style={styles.section}>
+
             <TouchableOpacity 
               style={styles.primaryButton}
               activeOpacity={0.8}
               onPress={() => router.push('/scanner')}
-              //onPress={() => Alert.alert('Botão funcionou', 'O clique está passando!')}
               disabled={isSubmittingManual}
             >
               <Feather name="maximize" size={24} color="#FFF" />
               <Text style={styles.primaryButtonText}>Ler QR Code com a Câmera</Text>
             </TouchableOpacity>
+
           </View>
 
           <View style={styles.dividerContainer}>
+
             <View style={styles.dividerLine} />
             <Text style={styles.dividerText}>OU</Text>
             <View style={styles.dividerLine} />
+
           </View>
 
           {/* OPÇÃO 2: Formulário Manual */}
           <View style={styles.section}>
+          
             <Text style={styles.label}>Digite a Chave de Acesso (44 números)</Text>
             
             <Controller

@@ -30,11 +30,11 @@ export function useEstoque() {
     const adicionarProdutos = useCallback(async (novosProdutos: ProdutoEstoque[]) => {
         try {
             setProdutos((estoqueAtual) => {
-                // Criamos uma cópia do estado atual para não mutar o array original diretamente
+                
                 const estoqueAtualizado = [...estoqueAtual];
 
                 novosProdutos.forEach((novoProduto) => {
-                    // Normalizamos o nome para evitar que "Café" e " café " criem cards separados
+                    
                     const nomeNormalizado = novoProduto.nome.trim().toLowerCase();
 
                     const indexExistente = estoqueAtualizado.findIndex(
@@ -42,35 +42,35 @@ export function useEstoque() {
                     );
 
                     if (indexExistente >= 0) {
-                        // O PRODUTO JÁ EXISTE: Vamos agrupar no lote
+                        
                         const produtoExistente = estoqueAtualizado[indexExistente];
 
-                        // Assumimos que o novo produto extraído da nota fiscal vem com 1 lote
+                        
                         const loteNovo = novoProduto.lotes[0];
 
-                        // 1. Somar quantidades
+                        
                         const novaQuantidadeTotal = produtoExistente.quantidadeTotal + novoProduto.quantidadeTotal;
 
-                        // 2. Calcular o novo Custo Médio Ponderado
+                        
                         const valorTotalExistente = produtoExistente.quantidadeTotal * produtoExistente.custoMedio;
                         const valorTotalNovo = novoProduto.quantidadeTotal * novoProduto.custoMedio;
                         const novoCustoMedio = (valorTotalExistente + valorTotalNovo) / novaQuantidadeTotal;
 
-                        // 3. Atualizar o item existente
+                        
                         estoqueAtualizado[indexExistente] = {
                             ...produtoExistente,
                             quantidadeTotal: novaQuantidadeTotal,
                             custoMedio: novoCustoMedio,
-                            lotes: [...produtoExistente.lotes, loteNovo] // Adiciona o novo lote no array
+                            lotes: [...produtoExistente.lotes, loteNovo]
                         };
 
                     } else {
-                        // É UM PRODUTO NOVO: Apenas insere na lista
+                        
                         estoqueAtualizado.push(novoProduto);
                     }
                 });
 
-                // Dispara o salvamento em background
+                
                 AsyncStorage.setItem(ESTOQUE_STORAGE_KEY, JSON.stringify(estoqueAtualizado)).catch(
                     (err) => console.error("Erro ao salvar no AsyncStorage", err)
                 );
@@ -83,7 +83,7 @@ export function useEstoque() {
         }
     }, []);
 
-    // Função utilitária para limpar o estoque (útil para testes)
+    
     const limparEstoque = useCallback(async () => {
         try {
             await AsyncStorage.removeItem(ESTOQUE_STORAGE_KEY);

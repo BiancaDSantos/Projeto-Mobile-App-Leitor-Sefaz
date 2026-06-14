@@ -1,10 +1,29 @@
-export const SEFAZ_EXTRACTOR_SCRIPT = `
+export const gerarScriptSefaz = (chaveAcesso: string) => `
   (function() {
     if (window.__SEFAZ_SCRIPT_INJECTED) return;
     window.__SEFAZ_SCRIPT_INJECTED = true;
 
     try {
-      // ESTADO 1: Tela de Validação (Captcha)
+      // ESTADO 0: Tela Inicial (Inserir Chave e Buscar)
+      const inputChave = document.getElementById('Body_Main_Main_sepConsultaNFCe_txtChave');
+      const btnBuscar = document.getElementById('Body_Main_Main_sepConsultaNFCe_btnBuscar');
+      
+      if (inputChave && btnBuscar) {
+        // Verifica se o campo já não está preenchido para evitar loop infinito de recarregamento
+        if (inputChave.value !== '${chaveAcesso}') {
+          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'SEFAZ_FILLING_FORM' }));
+          
+          inputChave.value = '${chaveAcesso}';
+          
+          // Aguarda um instante para garantir que eventos do DOM (onChange) registrem o valor
+          setTimeout(() => {
+            btnBuscar.click();
+          }, 300);
+        }
+        return; 
+      }
+
+      // ESTADO 1: Tela de Validação (Captcha Cloudflare)
       const btnValidar = document.getElementById('Body_Main_ButtonValidar');
       
       if (btnValidar) {
@@ -24,6 +43,8 @@ export const SEFAZ_EXTRACTOR_SCRIPT = `
 
       // ESTADO 2: Tela de Resultados (Nota Fiscal carregada)
       if (document.getElementById('tabResult')) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'SEFAZ_PROCESSING_DATA' }));
+
         const extractNumber = (str) => {
           if (!str) return 0;
           const limpo = str.replace(/[^\\d,]/g, '').replace(',', '.');
@@ -49,12 +70,10 @@ export const SEFAZ_EXTRACTOR_SCRIPT = `
           }
         });
 
-        // Extrai dados do emitente para compor a tela de revisão
         const emitenteNome = document.querySelector('.txtTopo')?.innerText.trim() || '';
         const emitenteCnpjElement = document.querySelectorAll('.text')[0];
         const emitenteCnpj = emitenteCnpjElement ? emitenteCnpjElement.innerText.replace(/\\D/g, '') : '';
 
-        // AGORA SIM: Enviando a estrutura correta { produtos, emitente }
         window.ReactNativeWebView.postMessage(JSON.stringify({
           type: 'SEFAZ_SUCCESS',
           data: {

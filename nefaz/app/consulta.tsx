@@ -15,8 +15,6 @@ export default function ConsultaScreen() {
         return null;
     }
 
-    const MODO_DESENVOLVIMENTO_OFFLINE = true;
-
     const baseUrl = process.env.EXPO_PUBLIC_URL_SEFAZ_SC;
 
 
@@ -54,22 +52,16 @@ export default function ConsultaScreen() {
     };
 
     return (
-        // <View style={styles.container}>
-        //     <CaptchaWebView
-        //         url={urlConsulta}
-        //         onDataExtracted={handleDataExtracted}
-        //         onError={handleError}
-        //     />
-        // </View>
 
         <View style={styles.container}>
             <CaptchaWebView
                 url={urlConsulta}
-                htmlMock={MODO_DESENVOLVIMENTO_OFFLINE ? MOCK_HTML_SEFAZ : undefined} // Injeta o Mock aqui
+                chaveAcesso={chave}
                 onDataExtracted={handleDataExtracted}
                 onError={handleError}
             />
         </View>
+
     );
 }
 
