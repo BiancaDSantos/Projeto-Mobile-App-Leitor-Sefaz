@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, Alert } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 
 import { useEstoque } from '../../hooks/useEstoque';
@@ -8,13 +8,28 @@ import { EmptyState } from '../../components/EstadoVazio';
 
 export default function Estoque() {
 
-    const { produtos, isLoading, fetchProdutos } = useEstoque();
+    const { produtos, isLoading, fetchProdutos, removerProduto } = useEstoque();
 
     useFocusEffect(
         React.useCallback(() => {
             fetchProdutos();
         }, [fetchProdutos])
     );
+
+    const confirmarExclusao = (idProduto: string, nomeProduto: string) => {
+        Alert.alert(
+            "Excluir Produto",
+            `Tem certeza que deseja remover "${nomeProduto}" do seu estoque? Essa ação não pode ser desfeita.`,
+            [
+                { text: "Cancelar", style: "cancel" },
+                {
+                    text: "Excluir",
+                    style: "destructive",
+                    onPress: () => removerProduto(idProduto)
+                }
+            ]
+        );
+    };
 
     if (isLoading) {
         return (
@@ -24,10 +39,10 @@ export default function Estoque() {
         );
     }
 
+
+
     return (
-
         <View style={styles.container}>
-
             <View style={styles.header}>
                 <Text style={styles.title}>Meus Produtos</Text>
                 <Text style={styles.subtitle}>
@@ -38,7 +53,13 @@ export default function Estoque() {
             <FlatList
                 data={produtos}
                 keyExtractor={(item) => item.id}
-                renderItem={({ item }) => <ProductCard produto={item} />}
+                
+                renderItem={({ item }) => (
+                    <ProductCard 
+                        produto={item} 
+                        onDelete={() => confirmarExclusao(item.id, item.nome)}
+                    />
+                )}
                 contentContainerStyle={styles.listContainer}
                 showsVerticalScrollIndicator={false}
                 ListEmptyComponent={
@@ -52,7 +73,6 @@ export default function Estoque() {
         </View>
     );
 }
-
 const styles = StyleSheet.create({
 
     container: {

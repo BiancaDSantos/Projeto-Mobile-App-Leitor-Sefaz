@@ -9,7 +9,6 @@ export function useEstoque() {
     const [produtos, setProdutos] = useState<ProdutoEstoque[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Busca os produtos salvos no armazenamento local
     const fetchProdutos = useCallback(async () => {
         setIsLoading(true);
         try {
@@ -26,7 +25,7 @@ export function useEstoque() {
         }
     }, []);
 
-    // Adiciona novos produtos aplicando a regra de agrupamento e custo médio
+
     const adicionarProdutos = useCallback(async (novosProdutos: ProdutoEstoque[]) => {
         try {
             setProdutos((estoqueAtual) => {
@@ -83,21 +82,31 @@ export function useEstoque() {
         }
     }, []);
 
+    const removerProduto = useCallback(async (idProduto: string) => {
+    try {
+      setProdutos((estoqueAtual) => {
+        
+        const estoqueAtualizado = estoqueAtual.filter((p) => p.id !== idProduto);
+        
+        
+        AsyncStorage.setItem(ESTOQUE_STORAGE_KEY, JSON.stringify(estoqueAtualizado)).catch(
+          (err) => console.error("Erro ao salvar no AsyncStorage após exclusão", err)
+        );
+
+        return estoqueAtualizado;
+      });
+    } catch (error) {
+      console.error("Erro ao remover produto", error);
+      throw error;
+    }
+  }, []);
     
-    const limparEstoque = useCallback(async () => {
-        try {
-            await AsyncStorage.removeItem(ESTOQUE_STORAGE_KEY);
-            setProdutos([]);
-        } catch (error) {
-            console.error("Erro ao limpar estoque", error);
-        }
-    }, []);
 
     return {
         produtos,
         isLoading,
         fetchProdutos,
         adicionarProdutos,
-        limparEstoque
+        removerProduto
     };
 }

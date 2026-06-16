@@ -16,6 +16,8 @@ export function CaptchaWebView({ url, chaveAcesso, htmlMock, onDataExtracted, on
     const [status, setStatus] = useState<'LOADING' | 'CAPTCHA_VISIBLE' | 'PROCESSING'>('LOADING');
     const [loadingMessage, setLoadingMessage] = useState('Conectando à SEFAZ...');
 
+    const [reloadCount, setReloadCount] = useState(0);
+    
     const handleMessage = (event: WebViewMessageEvent) => {
         try {
             const parsedData = JSON.parse(event.nativeEvent.data);
@@ -38,9 +40,24 @@ export function CaptchaWebView({ url, chaveAcesso, htmlMock, onDataExtracted, on
                 case 'SEFAZ_SUCCESS':
                     onDataExtracted(parsedData.data);
                     break;
+                case 'SEFAZ_BLOCKED':
+                    onError(parsedData.message);
+                    break;
                 case 'SEFAZ_ERROR':
                     onError(parsedData.message);
                     break;
+                case 'SEFAZ_RELOAD_REQUIRED':
+                    if (reloadCount < 3) {
+                        setReloadCount(prev => prev + 1);
+                        setStatus('LOADING');
+                        setLoadingMessage(`Reiniciando verificação (${reloadCount + 1}/3)...`);
+                        webviewRef.current?.reload();
+                    } else {
+                        
+                        onError('Não foi possível validar a segurança após várias tentativas. O portal pode estar instável.');
+                    }
+                    break;
+                
             }
         } catch (e) {
             console.error('Erro no parser da mensagem:', e);
@@ -63,12 +80,11 @@ export function CaptchaWebView({ url, chaveAcesso, htmlMock, onDataExtracted, on
             <WebView
                 ref={webviewRef}
                 source={sourceParams}
-                injectedJavaScript={gerarScriptSefaz(chaveAcesso)} // <-- Script dinâmico injetado aqui
-                injectedJavaScriptForMainFrameOnly={true}
+                injectedJavaScript={gerarScriptSefaz(chaveAcesso)}
                 onMessage={handleMessage}
                 javaScriptEnabled={true}
                 domStorageEnabled={true}
-                style={[styles.webview, (status === 'CAPTCHA_VISIBLE' || htmlMock) ? styles.webviewVisible : styles.webviewHidden]}
+                style={[styles.webview, (status === 'CAPTCHA_VISIBLE') ? styles.webviewVisible : styles.webviewHidden]}
             />
         </View>
     );

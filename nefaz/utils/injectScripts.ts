@@ -9,13 +9,13 @@ export const gerarScriptSefaz = (chaveAcesso: string) => `
       const btnBuscar = document.getElementById('Body_Main_Main_sepConsultaNFCe_btnBuscar');
       
       if (inputChave && btnBuscar) {
-        // Verifica se o campo já não está preenchido para evitar loop infinito de recarregamento
+        
         if (inputChave.value !== '${chaveAcesso}') {
           window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'SEFAZ_FILLING_FORM' }));
           
           inputChave.value = '${chaveAcesso}';
           
-          // Aguarda um instante para garantir que eventos do DOM (onChange) registrem o valor
+          
           setTimeout(() => {
             btnBuscar.click();
           }, 300);

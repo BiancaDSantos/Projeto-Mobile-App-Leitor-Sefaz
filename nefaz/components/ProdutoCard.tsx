@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, LayoutAnimation, TouchableOpacity } from 'react-native';
 import { ProdutoEstoque, formatarMoeda } from '@/types/estoque.type';
+import { Feather } from '@expo/vector-icons';
 
 interface ProductCardProps {
     produto: ProdutoEstoque;
+    onDelete?: () => void;
 }
 
 
-export function ProductCard({ produto }: ProductCardProps) {
+export function ProductCard({ produto, onDelete }: ProductCardProps) {
 
     const [expandido, setExpandido] = useState(false);
     const temLotes = produto.lotes && produto.lotes.length > 0;
@@ -29,11 +31,24 @@ export function ProductCard({ produto }: ProductCardProps) {
           <Text style={styles.produtoNome} numberOfLines={2}>
             {produto.icone ? `${produto.icone} ` : ''}{produto.nome}
           </Text>
-          {temLotes && (
-            <Text style={styles.indicadorExpandir}>
-              {expandido ? '[-]' : '[+]'}
-            </Text>
-          )}
+          
+          <View style={styles.headerAcoes}>
+            {temLotes && (
+              <Text style={styles.indicadorExpandir}>
+                {expandido ? '[-]' : '[+]'}
+              </Text>
+            )}
+            
+            {onDelete && (
+              <TouchableOpacity 
+                onPress={onDelete} 
+                style={styles.btnExcluir}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Feather name="trash-2" size={18} color="#FF3B30" />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
         
         <View style={styles.cardBody}>
@@ -83,6 +98,14 @@ export function ProductCard({ produto }: ProductCardProps) {
 }
 
 const styles = StyleSheet.create({
+  headerAcoes: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  btnExcluir: {
+    marginLeft: 12,
+    padding: 4,
+  },
   card: {
 
     backgroundColor: '#FFF',

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
     View,
     Text,
@@ -6,8 +6,9 @@ import {
     FlatList,
     TouchableOpacity,
     Alert,
-    SafeAreaView
+    TextInput
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { formatarMoeda, ProdutoEstoque } from '../types/estoque.type';
@@ -26,13 +27,28 @@ interface EmitenteSefaz {
 }
 
 export default function ReviewScreen() {
+
     const router = useRouter();
     const params = useLocalSearchParams<{ produtos: string; emitente: string }>();
+    const [itensNota, setItensNota] = useState<ProdutoSefaz[]>([]);
+
+    useEffect(() => {
+        try {
+            const produtosBrutos: ProdutoSefaz[] = params.produtos ? JSON.parse(params.produtos) : [];
+            setItensNota(produtosBrutos);
+        } catch {
+            setItensNota([]);
+        }
+    }, [params.produtos]);
+
+    const handleAtualizarNome = (index: number, novoNome: string) => {
+        const novaLista = [...itensNota];
+        novaLista[index].nome = novoNome;
+        setItensNota(novaLista);
+    };
 
     const { adicionarProdutos } = useEstoque();
 
-
-    // Parse dos dados recebidos com fallbacks de segurança
     const produtos: ProdutoSefaz[] = useMemo(() => {
         try {
             return params.produtos ? JSON.parse(params.produtos) : [];
@@ -49,7 +65,6 @@ export default function ReviewScreen() {
         }
     }, [params.emitente]);
 
-    // Cálculos de resumo da nota
     const totais = useMemo(() => {
         const totalItens = produtos.reduce((acc, p) => acc + p.quantidade, 0);
         const valorBruto = produtos.reduce((acc, p) => acc + (p.quantidade * p.valorUnitario), 0);
@@ -59,6 +74,7 @@ export default function ReviewScreen() {
     const handleSalvarEstoque = async () => {
         try {
             const novosProdutosNoEstoque: ProdutoEstoque[] = produtos.map(p => {
+
                 const idUnicoLote = Math.random().toString(36).substring(7);
                 const dataHoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 
@@ -76,6 +92,7 @@ export default function ReviewScreen() {
                         valorUnitario: p.valorUnitario
                     }]
                 };
+
             });
 
             await adicionarProdutos(novosProdutosNoEstoque);
@@ -85,15 +102,24 @@ export default function ReviewScreen() {
                 'Os produtos foram integrados ao seu estoque com sucesso.',
                 [{ text: 'OK', onPress: () => router.push('/estoque') }]
             );
+
         } catch (error) {
+
             Alert.alert('Erro', 'Não foi possível salvar os itens no estoque.');
+
         }
     };
 
-    const renderItem = ({ item }: { item: ProdutoSefaz }) => (
+    const renderItem = ({ item, index }: { item: ProdutoSefaz; index: number }) => (
+
         <View style={styles.itemCard}>
             <View style={styles.itemHeader}>
-                <Text style={styles.itemNome} numberOfLines={2}>{item.nome}</Text>
+                <TextInput
+                    style={styles.itemNomeInput}
+                    value={item.nome}
+                    onChangeText={(text) => handleAtualizarNome(index, text)}
+                    multiline
+                />
                 <Text style={styles.itemCodigo}>Cód: {item.codigoSefaz || 'N/A'}</Text>
             </View>
 
@@ -116,11 +142,12 @@ export default function ReviewScreen() {
                 </View>
             </View>
         </View>
+
     );
 
     return (
         <SafeAreaView style={styles.container}>
-            {/* Header com dados do Emitente */}
+            
             <View style={styles.header}>
                 <View style={styles.headerTitleRow}>
                     <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -140,16 +167,16 @@ export default function ReviewScreen() {
                 )}
             </View>
 
-            {/* Lista de Produtos */}
+            
             <FlatList
                 data={produtos}
-                keyExtractor={(item, index) => item.codigoSefaz || index.toString()}
-                renderItem={renderItem}
+                keyExtractor={(item, index) => `item-${index}-${item.codigoSefaz}`}
+                renderItem={({ item, index }) => renderItem({ item, index })}
                 contentContainerStyle={styles.listContainer}
                 showsVerticalScrollIndicator={false}
             />
 
-            {/* Painel Inferior de Confirmação */}
+           
             <View style={styles.footer}>
                 <View style={styles.resumoRow}>
                     <Text style={styles.resumoText}>{totais.totalItens} itens na nota</Text>
@@ -173,6 +200,15 @@ export default function ReviewScreen() {
 }
 
 const styles = StyleSheet.create({
+    itemNomeInput: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#007AFF',
+        marginBottom: 4,
+        borderBottomWidth: 1,
+        borderBottomColor: '#E5E5EA',
+        paddingBottom: 4,
+    },
     container: {
         flex: 1,
         backgroundColor: '#F2F2F7',
