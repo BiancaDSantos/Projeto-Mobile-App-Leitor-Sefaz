@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
     View,
     Text,
@@ -19,8 +19,8 @@ export default function ReviewScreen() {
 
     const router = useRouter();
     const params = useLocalSearchParams<{ produtos: string; emitente: string }>();
-  
-    
+
+
     const [itensNota, setItensNota] = useState<ProdutoSefaz[]>(() => {
         try {
             return params.produtos ? JSON.parse(params.produtos as string) : [];
@@ -31,7 +31,7 @@ export default function ReviewScreen() {
 
     const handleAtualizarNome = (index: number, novoNome: string) => {
         const novaLista = [...itensNota];
-        novaLista[index].nome = novoNome;
+        novaLista[index] = { ...novaLista[index], nome: novoNome };
         setItensNota(novaLista);
     };
 
@@ -96,8 +96,8 @@ export default function ReviewScreen() {
             <View style={styles.itemHeader}>
                 <TextInput
                     style={styles.itemNomeInput}
-                    value={item.nome}
-                    onChangeText={(text) => handleAtualizarNome(index, text)}
+                    defaultValue={item.nome}
+                    onEndEditing={(e) => handleAtualizarNome(index, e.nativeEvent.text)}
                     multiline
                 />
                 <Text style={styles.itemCodigo}>Cód: {item.codigoSefaz || 'N/A'}</Text>
@@ -127,7 +127,7 @@ export default function ReviewScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            
+
             <View style={styles.header}>
                 <View style={styles.headerTitleRow}>
                     <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -147,7 +147,7 @@ export default function ReviewScreen() {
                 )}
             </View>
 
-            
+
             <FlatList
                 data={itensNota}
                 keyExtractor={(item, index) => `item-${index}-${item.codigoSefaz}`}
@@ -156,7 +156,7 @@ export default function ReviewScreen() {
                 showsVerticalScrollIndicator={false}
             />
 
-           
+
             <View style={styles.footer}>
                 <View style={styles.resumoRow}>
                     <Text style={styles.resumoText}>{totais.totalItens} itens na nota</Text>

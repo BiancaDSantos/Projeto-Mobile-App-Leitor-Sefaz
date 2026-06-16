@@ -94,12 +94,37 @@ export function useEstoque() {
         }
     }, []);
 
+    const editarProduto = useCallback(async (idProduto: string, dadosAtualizados: Partial<ProdutoEstoque>) => {
+        try {
+            setProdutos((estoqueAtual) => {
+                
+                const estoqueAtualizado = estoqueAtual.map((produto) => {
+                    if (produto.id === idProduto) {
+                        return { ...produto, ...dadosAtualizados };
+                    }
+                    return produto;
+                });
+
+                
+                AsyncStorage.setItem(ESTOQUE_STORAGE_KEY, JSON.stringify(estoqueAtualizado)).catch(
+                    (err) => console.error("Erro ao salvar no AsyncStorage após edição", err)
+                );
+
+                return estoqueAtualizado;
+            });
+        } catch (error) {
+            console.error("Erro ao editar produto", error);
+            throw error;
+        }
+    }, []);
+
 
     return {
         produtos,
         isLoading,
         fetchProdutos,
         adicionarProdutos,
-        removerProduto
+        removerProduto,
+        editarProduto
     };
 }
