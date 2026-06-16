@@ -37,7 +37,6 @@ export default function ConsultaScreen() {
         router.replace({
             pathname: '/review',
             params: {
-                chave: chave,
                 produtos: JSON.stringify(dados.produtos),
                 emitente: JSON.stringify(dados.emitente)
             }

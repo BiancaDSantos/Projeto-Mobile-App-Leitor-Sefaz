@@ -34,12 +34,14 @@ export default function ScannerScreen() {
     };
 
     const lidarComLeitura = ({ data }: { data: string }) => {
+        
         if (escaneado) return;
 
         setEscaneado(true);
         const chaveExtraida = extrairChaveSefaz(data);
 
         if (chaveExtraida) {
+            
             Vibration.vibrate(100);
 
             Alert.alert(
@@ -62,13 +64,13 @@ export default function ScannerScreen() {
                 ]
             );
         } else {
-            Vibration.vibrate([0, 100, 100, 100]);
-
+            
             Alert.alert(
                 'QR Code Inválido',
                 'Não foi possível encontrar uma chave de acesso de 44 dígitos neste código.',
                 [{ text: 'Tentar Novamente', onPress: () => setEscaneado(false) }]
             );
+            
         }
     };
 
