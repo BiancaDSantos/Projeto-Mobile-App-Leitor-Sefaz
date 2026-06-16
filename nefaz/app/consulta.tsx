@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { CaptchaWebView } from '../components/CaptchaWebView';
-import { MOCK_HTML_SEFAZ } from '@/mocks/mockSefaz';
+import { DadosExtracaoSefaz } from '@/types/estoque.type';
 
 export default function ConsultaScreen() {
 
@@ -24,7 +24,7 @@ export default function ConsultaScreen() {
 
     const urlConsulta = `${baseUrl}?p=${chave}|2|1|1|`;
 
-    const handleDataExtracted = (dados: any) => {
+    const handleDataExtracted = (dados: DadosExtracaoSefaz) => {
 
         if (!dados || !dados.produtos) {
             handleError('O formato da nota fiscal é inválido ou não possui itens.');
@@ -37,6 +37,7 @@ export default function ConsultaScreen() {
         router.replace({
             pathname: '/review',
             params: {
+                chave: chave,
                 produtos: JSON.stringify(dados.produtos),
                 emitente: JSON.stringify(dados.emitente)
             }

@@ -5,7 +5,7 @@ import { ProdutoEstoque } from '../types/estoque.type';
 const ESTOQUE_STORAGE_KEY = '@app_estoque:produtos';
 
 export function useEstoque() {
-    
+
     const [produtos, setProdutos] = useState<ProdutoEstoque[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -29,33 +29,29 @@ export function useEstoque() {
     const adicionarProdutos = useCallback(async (novosProdutos: ProdutoEstoque[]) => {
         try {
             setProdutos((estoqueAtual) => {
-                
+
                 const estoqueAtualizado = [...estoqueAtual];
 
                 novosProdutos.forEach((novoProduto) => {
-                    
+
                     const nomeNormalizado = novoProduto.nome.trim().toLowerCase();
 
                     const indexExistente = estoqueAtualizado.findIndex(
-                        (p) => p.nome.trim().toLowerCase() === nomeNormalizado
+                        (produto) => produto.nome.trim().toLowerCase() === nomeNormalizado
                     );
 
                     if (indexExistente >= 0) {
-                        
+
                         const produtoExistente = estoqueAtualizado[indexExistente];
 
-                        
                         const loteNovo = novoProduto.lotes[0];
 
-                        
                         const novaQuantidadeTotal = produtoExistente.quantidadeTotal + novoProduto.quantidadeTotal;
 
-                        
                         const valorTotalExistente = produtoExistente.quantidadeTotal * produtoExistente.custoMedio;
                         const valorTotalNovo = novoProduto.quantidadeTotal * novoProduto.custoMedio;
                         const novoCustoMedio = (valorTotalExistente + valorTotalNovo) / novaQuantidadeTotal;
 
-                        
                         estoqueAtualizado[indexExistente] = {
                             ...produtoExistente,
                             quantidadeTotal: novaQuantidadeTotal,
@@ -64,12 +60,10 @@ export function useEstoque() {
                         };
 
                     } else {
-                        
                         estoqueAtualizado.push(novoProduto);
                     }
                 });
 
-                
                 AsyncStorage.setItem(ESTOQUE_STORAGE_KEY, JSON.stringify(estoqueAtualizado)).catch(
                     (err) => console.error("Erro ao salvar no AsyncStorage", err)
                 );
@@ -83,24 +77,23 @@ export function useEstoque() {
     }, []);
 
     const removerProduto = useCallback(async (idProduto: string) => {
-    try {
-      setProdutos((estoqueAtual) => {
-        
-        const estoqueAtualizado = estoqueAtual.filter((p) => p.id !== idProduto);
-        
-        
-        AsyncStorage.setItem(ESTOQUE_STORAGE_KEY, JSON.stringify(estoqueAtualizado)).catch(
-          (err) => console.error("Erro ao salvar no AsyncStorage após exclusão", err)
-        );
+        try {
+            setProdutos((estoqueAtual) => {
 
-        return estoqueAtualizado;
-      });
-    } catch (error) {
-      console.error("Erro ao remover produto", error);
-      throw error;
-    }
-  }, []);
-    
+                const estoqueAtualizado = estoqueAtual.filter((p) => p.id !== idProduto);
+
+                AsyncStorage.setItem(ESTOQUE_STORAGE_KEY, JSON.stringify(estoqueAtualizado)).catch(
+                    (err) => console.error("Erro ao salvar no AsyncStorage após exclusão", err)
+                );
+
+                return estoqueAtualizado;
+            });
+        } catch (error) {
+            console.error("Erro ao remover produto", error);
+            throw error;
+        }
+    }, []);
+
 
     return {
         produtos,

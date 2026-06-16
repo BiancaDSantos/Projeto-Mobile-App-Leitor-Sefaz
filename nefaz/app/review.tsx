@@ -11,35 +11,23 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { formatarMoeda, ProdutoEstoque } from '../types/estoque.type';
+import { EmitenteSefaz, formatarMoeda, ProdutoEstoque, ProdutoSefaz } from '../types/estoque.type';
 import { useEstoque } from '@/hooks/useEstoque';
 
-interface ProdutoSefaz {
-    nome: string;
-    codigoSefaz: string;
-    quantidade: number;
-    valorUnitario: number;
-}
-
-interface EmitenteSefaz {
-    nome: string;
-    cnpj: string;
-}
 
 export default function ReviewScreen() {
 
     const router = useRouter();
     const params = useLocalSearchParams<{ produtos: string; emitente: string }>();
-    const [itensNota, setItensNota] = useState<ProdutoSefaz[]>([]);
-
-    useEffect(() => {
+  
+    
+    const [itensNota, setItensNota] = useState<ProdutoSefaz[]>(() => {
         try {
-            const produtosBrutos: ProdutoSefaz[] = params.produtos ? JSON.parse(params.produtos) : [];
-            setItensNota(produtosBrutos);
+            return params.produtos ? JSON.parse(params.produtos as string) : [];
         } catch {
-            setItensNota([]);
+            return [];
         }
-    }, [params.produtos]);
+    });
 
     const handleAtualizarNome = (index: number, novoNome: string) => {
         const novaLista = [...itensNota];
@@ -48,14 +36,6 @@ export default function ReviewScreen() {
     };
 
     const { adicionarProdutos } = useEstoque();
-
-    const produtos: ProdutoSefaz[] = useMemo(() => {
-        try {
-            return params.produtos ? JSON.parse(params.produtos) : [];
-        } catch {
-            return [];
-        }
-    }, [params.produtos]);
 
     const emitente: EmitenteSefaz | null = useMemo(() => {
         try {
@@ -66,30 +46,30 @@ export default function ReviewScreen() {
     }, [params.emitente]);
 
     const totais = useMemo(() => {
-        const totalItens = produtos.reduce((acc, p) => acc + p.quantidade, 0);
-        const valorBruto = produtos.reduce((acc, p) => acc + (p.quantidade * p.valorUnitario), 0);
+        const totalItens = itensNota.reduce((acc, p) => acc + p.quantidade, 0);
+        const valorBruto = itensNota.reduce((acc, p) => acc + (p.quantidade * p.valorUnitario), 0);
         return { totalItens, valorBruto };
-    }, [produtos]);
+    }, [itensNota]);
 
     const handleSalvarEstoque = async () => {
         try {
-            const novosProdutosNoEstoque: ProdutoEstoque[] = produtos.map(p => {
+            const novosProdutosNoEstoque: ProdutoEstoque[] = itensNota.map(produto => {
 
                 const idUnicoLote = Math.random().toString(36).substring(7);
                 const dataHoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 
                 return {
-                    id: p.codigoSefaz || Math.random().toString(36).substring(7),
-                    codigoSefaz: p.codigoSefaz,
-                    nome: p.nome,
-                    quantidadeTotal: p.quantidade,
-                    custoMedio: p.valorUnitario,
+                    id: produto.codigoSefaz || Math.random().toString(36).substring(7),
+                    codigoSefaz: produto.codigoSefaz,
+                    nome: produto.nome,
+                    quantidadeTotal: produto.quantidade,
+                    custoMedio: produto.valorUnitario,
                     unidadeMedida: 'UN',
                     lotes: [{
                         id: idUnicoLote,
                         dataEntrada: dataHoje,
-                        quantidade: p.quantidade,
-                        valorUnitario: p.valorUnitario
+                        quantidade: produto.quantidade,
+                        valorUnitario: produto.valorUnitario
                     }]
                 };
 
@@ -158,7 +138,7 @@ export default function ReviewScreen() {
 
                 {emitente && (
                     <View style={styles.emitenteCard}>
-                        <Feather name="shopping-bag" size={18} color="#007AFF" style={styles.emitenteIcon} />
+                        <Feather name="shopping-bag" size={18} color="#B848ED" style={styles.emitenteIcon} />
                         <View style={styles.emitenteInfo}>
                             <Text style={styles.emitenteNome} numberOfLines={1}>{emitente.nome}</Text>
                             <Text style={styles.emitenteCnpj}>CNPJ: {emitente.cnpj}</Text>
@@ -169,7 +149,7 @@ export default function ReviewScreen() {
 
             
             <FlatList
-                data={produtos}
+                data={itensNota}
                 keyExtractor={(item, index) => `item-${index}-${item.codigoSefaz}`}
                 renderItem={({ item, index }) => renderItem({ item, index })}
                 contentContainerStyle={styles.listContainer}
@@ -203,7 +183,7 @@ const styles = StyleSheet.create({
     itemNomeInput: {
         fontSize: 15,
         fontWeight: '600',
-        color: '#007AFF',
+        color: '#B848ED',
         marginBottom: 4,
         borderBottomWidth: 1,
         borderBottomColor: '#E5E5EA',

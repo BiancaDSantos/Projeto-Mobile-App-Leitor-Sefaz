@@ -2,16 +2,16 @@ import React, { useRef, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { gerarScriptSefaz } from '../utils/injectScripts';
+import { DadosExtracaoSefaz } from '@/types/estoque.type';
 
 interface CaptchaWebViewProps {
     url: string;
     chaveAcesso: string;
-    htmlMock?: string;
-    onDataExtracted: (dados: any) => void;
+    onDataExtracted: (dados: DadosExtracaoSefaz) => void;
     onError: (erro: string) => void;
 }
 
-export function CaptchaWebView({ url, chaveAcesso, htmlMock, onDataExtracted, onError }: CaptchaWebViewProps) {
+export function CaptchaWebView({ url, chaveAcesso, onDataExtracted, onError }: CaptchaWebViewProps) {
     const webviewRef = useRef<WebView>(null);
     const [status, setStatus] = useState<'LOADING' | 'CAPTCHA_VISIBLE' | 'PROCESSING'>('LOADING');
     const [loadingMessage, setLoadingMessage] = useState('Conectando à SEFAZ...');
@@ -64,22 +64,18 @@ export function CaptchaWebView({ url, chaveAcesso, htmlMock, onDataExtracted, on
         }
     };
 
-    const sourceParams = htmlMock
-        ? { html: htmlMock, baseUrl: 'https://sat.sef.sc.gov.br' }
-        : { uri: url };
-
     return (
         <View style={styles.container}>
             {(status === 'LOADING' || status === 'PROCESSING') && (
                 <View style={styles.overlayContainer}>
-                    <ActivityIndicator size="large" color="#007AFF" />
+                    <ActivityIndicator size="large" color="#B848ED" />
                     <Text style={styles.loadingText}>{loadingMessage}</Text>
                 </View>
             )}
 
             <WebView
                 ref={webviewRef}
-                source={sourceParams}
+                source={{uri : url}}
                 injectedJavaScript={gerarScriptSefaz(chaveAcesso)}
                 onMessage={handleMessage}
                 javaScriptEnabled={true}
